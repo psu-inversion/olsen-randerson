@@ -1,2 +1,5 @@
 recursive-include tests *.py
 include tox.ini setup.cfg pyproject.toml VERSION
+
+recursive-include docs *.rst
+include docs/Makefile docs/conf.py
