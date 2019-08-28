@@ -1,0 +1,11 @@
+.cache
+.hypothesis
+.tox
+dist
+__pycache__
+__version__.py
+
+*~
+*.egg-info
+*.dist-info
+*.pyc
