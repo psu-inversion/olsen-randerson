@@ -9,7 +9,7 @@ Q10 = 1.5
 It is the factor by which the respiration increases when the
 temperature increases by ten degrees.
 """
-T0 = 10
+T0 = 30
 """Baseline temperature for Olsen-Randerson downscaling.
 
 Should be near the center of the temperature range.
