@@ -6,6 +6,8 @@ __pycache__
 __version__.py
 _build
 build
+.coverage
+.coverage.*
 
 *~
 *.egg-info

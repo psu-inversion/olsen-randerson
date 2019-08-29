@@ -1,6 +1,8 @@
 """Temporal downscaling of fluxes following Olsen and Randerson (2004)."""
 import numpy as np
 
+from .__version__ import VERSION as __version__  # noqa: F401
+
 NEP_TO_GPP_FACTOR = 2
 """Conversion factor to estimate GPP from NEE."""
 Q10 = 1.5

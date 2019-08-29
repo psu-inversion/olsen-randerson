@@ -41,7 +41,7 @@ DOWNSCALED_INDEX = pd.date_range("2014-12-15T00:00:00",
 @given(
     arrays(
         float, (len(MONTH_CENTER_INDEX), len(COLUMNS)),
-        elements=floats(min_value=0, allow_infinity=False)
+        elements=floats(min_value=0, max_value=1e30)
     ).map(
         functools.partial(pd.DataFrame,
                           index=MONTH_CENTER_INDEX,
@@ -54,11 +54,11 @@ DOWNSCALED_INDEX = pd.date_range("2014-12-15T00:00:00",
         functools.partial(pd.DataFrame,
                           index=DOWNSCALED_INDEX,
                           columns=COLUMNS)
-    )
+    ).filter(lambda par: np.all(par.rolling("30D").sum() > 0))
 )
 def test_downscale_gpp_timeseries(flux_gpp, par):
     """Test downscaling of GPP."""
-    assume(np.all(np.any(par != 0, axis=0)))
+    assume(np.all(par.rolling("30D").sum() > 0))
     flux_gpp_downscaled = olsen_randerson.fisher.downscale_gpp_timeseries(
         flux_gpp, par
     )

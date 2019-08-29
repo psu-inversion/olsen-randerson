@@ -1,3 +1,4 @@
+"""Configuration for Sphinx documentation."""
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -19,7 +20,7 @@ sys.path.insert(0, os.path.join(PACKAGE_ROOT, 'src'))
 # -- Project information -----------------------------------------------------
 
 project = 'olsen-randerson'
-copyright = '2019, DWesl'
+copyright = '2019, DWesl'  # noqa: A001
 author = 'DWesl'
 
 # The full version, including alpha/beta/rc tags

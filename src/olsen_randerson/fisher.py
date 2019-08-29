@@ -9,9 +9,6 @@ present, this code uses rolling windows ending on the given day,
 because that is easy to get pandas to do.
 """
 
-import numpy as np
-import pandas as pd
-
 from . import NEP_TO_GPP_FACTOR, Q10, T0
 
 INPUT_FREQUENCY = "1M"
@@ -75,6 +72,9 @@ def downscale_gpp_timeseries(flux_gpp, par):
     Parameters
     ----------
     flux_gpp : pd.DataFrame[N_large, M]
+        Gross Primary productivity at the larger timesteps.
+        Must have a datetime index.
+        Units must have time in the denominator.
     par : pd.DataFrame[N, M]
         Photosynthetically active radiation at the small timesteps.
         Must be greather than or equal to zero.
@@ -96,9 +96,13 @@ def downscale_gpp_timeseries(flux_gpp, par):
     # I can't figure out how to get a centered window.
     par_mean = par.rolling("30D").mean()
     # Get the GPP timeseries to the same timestep as par
-    flux_gpp_baseline = flux_gpp.resample(par.index.freq).interpolate(method="time")
-    # This would be where I would deal with the first and last several timesteps.
+    flux_gpp_baseline = flux_gpp.resample(
+        par.index.freq
+    ).interpolate(method="time")
+    # This would be where I would deal with the first and last several
+    # timesteps.
     return flux_gpp_baseline / par_mean * par
+
 
 def downscale_resp_timeseries(flux_resp, temperature):
     """Downscale the columns of flux_resp.
@@ -106,6 +110,9 @@ def downscale_resp_timeseries(flux_resp, temperature):
     Parameters
     ----------
     flux_resp : pd.DataFrame[N_large, M]
+        Respiration fluxes at the larger timesteps.
+        Must have a datetime index.
+        Units must have time in denominator.
     temperature : pd.DataFrame[N, M]
         Temperature at the small timesteps.
         Must have datetime index with a set frequency
@@ -132,5 +139,6 @@ def downscale_resp_timeseries(flux_resp, temperature):
     flux_resp_baseline = flux_resp.resample(
         temperature.index.freq
     ).interpolate(method="time")
-    # This is where I would deal with the first and last several timesteps.
+    # This is where I would deal with the first and last several
+    # timesteps.
     return flux_resp_baseline / resp_mean * resp_scaling
