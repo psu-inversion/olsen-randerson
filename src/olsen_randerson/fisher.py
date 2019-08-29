@@ -30,22 +30,22 @@ def downscale_timeseries(flux_nee, temperature, par):
     Parameters
     ----------
     flux_nee : pd.DataFrame[N_large, M]
-        Net Ecosystem Exchange, at the large timesteps.
-        Must have datetime index.
-        Positive indicates carbon is entering the atmosphere.
-        Units must have time in denominator.
+        :abbr:`NEE (Net Ecosystem Exchange)`, at the large timesteps.
+        Must have datetime index.  Positive indicates carbon is
+        entering the atmosphere.  Units must have time in denominator.
     temperature : pd.DataFrame[N, M]
         Temperature at the small timesteps.
         Must have datetime index with a set frequency
         Unit is expected to be degrees Celsius.
     par : pd.DataFrame[N, M]
-        Photosynthetically active radiation at the small timesteps.
-        Must be greather than or equal to zero.
-        Must have datetime index with a set frequency.
+        :abbr:`PAR (Photosynthetically Active Radiation)` at the small
+        timesteps.  Must be greather than or equal to zero.  Must have
+        datetime index with a set frequency.
 
     Returns
     -------
     flux_nee : pd.DataFrame[N, M]
+        The downscaled :abbr:`NEE (Net Ecosystem Exchange)`.
 
     References
     ----------
@@ -72,17 +72,19 @@ def downscale_gpp_timeseries(flux_gpp, par):
     Parameters
     ----------
     flux_gpp : pd.DataFrame[N_large, M]
-        Gross Primary productivity at the larger timesteps.
-        Must have a datetime index.
-        Units must have time in the denominator.
+        :abbr:`GPP (Gross Primary Productivity)` at the larger
+        timesteps.  Must have a datetime index.  Units must have time
+        in the denominator.
     par : pd.DataFrame[N, M]
-        Photosynthetically active radiation at the small timesteps.
-        Must be greather than or equal to zero.
-        Must have datetime index with a set frequency.
+        :abbr:`PAR (Photosynthetically Active Radiation)` at the small
+        timesteps.  Must be greather than or equal to zero.  Must have
+        datetime index with a set frequency.
 
     Returns
     -------
     flux_gpp : pd.DataFrame[N, M]
+        The :abbr:`GPP (Gross Primary Productivity)` downscaled to the
+        smaller time steps.
 
     References
     ----------
@@ -121,6 +123,7 @@ def downscale_resp_timeseries(flux_resp, temperature):
     Returns
     -------
     flux_resp : pd.DataFrame[N, M]
+        The respiration fluxes downscaled to the smaller time steps.
 
     References
     ----------

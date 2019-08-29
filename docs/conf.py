@@ -107,6 +107,7 @@ numpydoc_xref_param_type = True
 intersphinx_mapping = {
     'https://docs.python.org/3/': None,
     'https://docs.scipy.org/doc/numpy/': None,
+    'https://pandas.pydata.org/pandas-docs/stable/': None,
 }
 
 # -- Options for todo extension ----------------------------------------------

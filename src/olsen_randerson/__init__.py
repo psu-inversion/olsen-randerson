@@ -4,7 +4,12 @@ import numpy as np
 from .__version__ import VERSION as __version__  # noqa: F401
 
 NEP_TO_GPP_FACTOR = 2
-"""Conversion factor to estimate GPP from NEE."""
+"""Conversion factor to estimate GPP from NEE
+
+The downscaling needs :abbr:`GPP (Gross Primary Productivity)`, but
+often only :abbr:`NEE (Net Ecosystem Exchange)` is available.  This
+describes how to turn the latter into an estimate of the former.
+"""
 Q10 = 1.5
 """The :math:`Q_{10}` value used in the Olsen and Randerson downscaling.
 
@@ -24,19 +29,22 @@ def olsen_randerson_once(flux_nep, temperature, par):
     Parameters
     ----------
     flux_nep : np.ndarray[...]
-        Biogenic Net Ecosystem Productivity, usually at monthly timescale.
-        Units must include time in the denominator.
+        Biogenic :abbr:`NEP (Net Ecosystem Productivity)`, usually at
+        monthly timescale.  Units must include time in the
+        denominator.
     temperature : np.ndarray[N, ...]
         Temperature in Celsius, at the downscaled resolution.
         Units are expected to be degrees Celsius.
     par : np.ndarray[N, ...]
-        Photosynthetically Active Radiation, at the downscaled resolution
-        PAR is defined to be greater than or equal to zero.
+        :abbr:`PAR (Photosynthetically Active Radiation)`, at the
+        downscaled resolution.
+        :abbr:`PAR (Photosynthetically Active Radiation)` is defined
+        to be greater than or equal to zero.
 
     Returns
     -------
     flux_nee : np.ndarray[N, ...]
-        The downscaled NEP
+        The downscaled :abbr:`NEP (Net Ecosystem Productivity)`.
 
     References
     ----------
@@ -76,18 +84,22 @@ def olsen_randerson_gpp_once(flux_gpp, par):
     Parameters
     ----------
     flux_gpp : np.ndarray[...]
-        The Gross Primary Productivity to downscale.
+        The :abbr:`GPP (Gross Primary Productivity)` to downscale.
         Units must include time in denominator.
-        GPP is defined to be greater than or equal to zero.
+        :abbr:`GPP (Gross Primary Productivity)` is defined to be
+        greater than or equal to zero.
     par : np.ndarray[N, ...]
-        Photosynthetically active radiation at downscaled frequency.
-        Will be used for the GPP downscaling.
-        PAR is defined to be greater than or equal to zero.
+        :abbr:`PAR (Photosynthetically Active Radiation)` at
+        downscaled frequency.
+        Will be used for the :abbr:`GPP (Gross Primary Productivity)`
+        downscaling.
+        :abbr:`PAR (Photosynthetically Active Radiation)` is defined
+        to be greater than or equal to zero.
 
     Returns
     -------
     flux_gpp : np.ndarray[N, ...]
-        The downscaled GPP
+        The downscaled :abbr:`GPP (Gross Primary Productivity)`
 
     References
     ----------
