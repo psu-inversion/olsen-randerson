@@ -21,7 +21,7 @@ def olsen_randerson_once(flux_nep, temperature, par):
 
     Parameters
     ----------
-    flux_nee : np.ndarray[...]
+    flux_nep : np.ndarray[...]
         Biogenic Net Ecosystem Productivity, usually at monthly timescale.
         Units must include time in the denominator.
     temperature : np.ndarray[N, ...]
@@ -29,11 +29,12 @@ def olsen_randerson_once(flux_nep, temperature, par):
         Units are expected to be degrees Celsius.
     par : np.ndarray[N, ...]
         Photosynthetically Active Radiation, at the downscaled resolution
+        PAR is defined to be greater than or equal to zero.
 
     Returns
     -------
     flux_nee : np.ndarray[N, ...]
-        The downscaled NEE
+        The downscaled NEP
 
     References
     ----------
@@ -75,9 +76,11 @@ def olsen_randerson_gpp_once(flux_gpp, par):
     flux_gpp : np.ndarray[...]
         The Gross Primary Productivity to downscale.
         Units must include time in denominator.
+        GPP is defined to be greater than or equal to zero.
     par : np.ndarray[N, ...]
         Photosynthetically active radiation at downscaled frequency.
         Will be used for the GPP downscaling.
+        PAR is defined to be greater than or equal to zero.
 
     Returns
     -------
@@ -110,6 +113,7 @@ def olsen_randerson_resp_once(flux_resp, temperature):
     flux_resp : np.ndarray[...]
         The original respiration fluxes to downscale.
         Units must include time in the denominator.
+        Respiration fluxes are defined to be greater than or equal to zero.
     temperature : np.ndarray[N, ...]
         The temperature at the downscaled frequency.
         Expected units are degrees Celsius.
