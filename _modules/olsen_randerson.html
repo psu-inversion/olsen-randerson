@@ -1,0 +1,257 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>olsen_randerson &#8212; olsen-randerson 0.0.0.dev0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"extensions": ["tex2jax.js"], "jax": ["input/TeX", "output/HTML-CSS"], "TeX": {"extensions": ["AMSmath.js"]}})</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for olsen_randerson</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Temporal downscaling of fluxes following Olsen and Randerson (2004).&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.__version__</span> <span class="k">import</span> <span class="n">VERSION</span> <span class="k">as</span> <span class="n">__version__</span>  <span class="c1"># noqa: F401</span>
+
+<span class="n">NEP_TO_GPP_FACTOR</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="sd">&quot;&quot;&quot;Conversion factor to estimate GPP from NEE</span>
+
+<span class="sd">The downscaling needs :abbr:`GPP (Gross Primary Productivity)`, but</span>
+<span class="sd">often only :abbr:`NEE (Net Ecosystem Exchange)` is available.  This</span>
+<span class="sd">describes how to turn the latter into an estimate of the former.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">Q10</span> <span class="o">=</span> <span class="mf">1.5</span>
+<span class="sd">&quot;&quot;&quot;The :math:`Q_{10}` value used in the Olsen and Randerson downscaling.</span>
+
+<span class="sd">It is the factor by which the respiration increases when the</span>
+<span class="sd">temperature increases by ten degrees.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">T0</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="sd">&quot;&quot;&quot;Baseline temperature for Olsen-Randerson downscaling.</span>
+
+<span class="sd">Should be near the center of the temperature range.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="olsen_randerson_once"><a class="viewcode-back" href="../olsen_randerson.html#olsen_randerson.olsen_randerson_once">[docs]</a><span class="k">def</span> <span class="nf">olsen_randerson_once</span><span class="p">(</span><span class="n">flux_nep</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">par</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform the Olson Randerson downscaling.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    flux_nep : np.ndarray[...]</span>
+<span class="sd">        Biogenic :abbr:`NEP (Net Ecosystem Productivity)`, usually at</span>
+<span class="sd">        monthly timescale.  Units must include time in the</span>
+<span class="sd">        denominator.</span>
+<span class="sd">    temperature : np.ndarray[N, ...]</span>
+<span class="sd">        Temperature in Celsius, at the downscaled resolution.</span>
+<span class="sd">        Units are expected to be degrees Celsius.</span>
+<span class="sd">    par : np.ndarray[N, ...]</span>
+<span class="sd">        :abbr:`PAR (Photosynthetically Active Radiation)`, at the</span>
+<span class="sd">        downscaled resolution.</span>
+<span class="sd">        :abbr:`PAR (Photosynthetically Active Radiation)` is defined</span>
+<span class="sd">        to be greater than or equal to zero.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    flux_nee : np.ndarray[N, ...]</span>
+<span class="sd">        The downscaled :abbr:`NEP (Net Ecosystem Productivity)`.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Olsen, Seth C. and James T. Randerson, 2004.  &quot;Differences between</span>
+<span class="sd">    surface and column atmospheric CO2 and implications for carbon</span>
+<span class="sd">    cycle research,&quot; *Journal of Geophysical Research: Atmospheres*</span>
+<span class="sd">    vol. 109, no. D2, D02301.  :doi:`10.1029/2003JD003968`.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; time = np.arange(0, 3, .1)</span>
+<span class="sd">    &gt;&gt;&gt; par = -np.cos(2 * np.pi * time)</span>
+<span class="sd">    &gt;&gt;&gt; par[par &lt; 0] = 0</span>
+<span class="sd">    &gt;&gt;&gt; temperature = 10 - 10 * np.cos(2 * np.pi * time)</span>
+<span class="sd">    &gt;&gt;&gt; # First item in row alternates between midnight and noon</span>
+<span class="sd">    &gt;&gt;&gt; olsen_randerson_once(np.array(5), temperature, par)</span>
+<span class="sd">    array([-3.20043607, -3.4581163 , -4.2353102 ,  4.10768819, 18.33559721,</span>
+<span class="sd">           23.70071827, 18.33559721,  4.10768819, -4.2353102 , -3.4581163 ,</span>
+<span class="sd">           -3.20043607, -3.4581163 , -4.2353102 ,  4.10768819, 18.33559721,</span>
+<span class="sd">           23.70071827, 18.33559721,  4.10768819, -4.2353102 , -3.4581163 ,</span>
+<span class="sd">           -3.20043607, -3.4581163 , -4.2353102 ,  4.10768819, 18.33559721,</span>
+<span class="sd">           23.70071827, 18.33559721,  4.10768819, -4.2353102 , -3.4581163 ])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">estimated_gpp</span> <span class="o">=</span> <span class="n">NEP_TO_GPP_FACTOR</span> <span class="o">*</span> <span class="n">flux_nep</span>
+    <span class="n">flux_gpp</span> <span class="o">=</span> <span class="n">olsen_randerson_gpp_once</span><span class="p">(</span>
+        <span class="n">estimated_gpp</span><span class="p">,</span> <span class="n">par</span>
+    <span class="p">)</span>
+    <span class="n">flux_resp</span> <span class="o">=</span> <span class="n">olsen_randerson_resp_once</span><span class="p">(</span>
+        <span class="n">estimated_gpp</span> <span class="o">-</span> <span class="n">flux_nep</span><span class="p">,</span> <span class="n">temperature</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">flux_gpp</span> <span class="o">-</span> <span class="n">flux_resp</span></div>
+
+
+<div class="viewcode-block" id="olsen_randerson_gpp_once"><a class="viewcode-back" href="../olsen_randerson.html#olsen_randerson.olsen_randerson_gpp_once">[docs]</a><span class="k">def</span> <span class="nf">olsen_randerson_gpp_once</span><span class="p">(</span><span class="n">flux_gpp</span><span class="p">,</span> <span class="n">par</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Downscale the GPP following Olsen and Randerson (2004).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    flux_gpp : np.ndarray[...]</span>
+<span class="sd">        The :abbr:`GPP (Gross Primary Productivity)` to downscale.</span>
+<span class="sd">        Units must include time in denominator.</span>
+<span class="sd">        :abbr:`GPP (Gross Primary Productivity)` is defined to be</span>
+<span class="sd">        greater than or equal to zero.</span>
+<span class="sd">    par : np.ndarray[N, ...]</span>
+<span class="sd">        :abbr:`PAR (Photosynthetically Active Radiation)` at</span>
+<span class="sd">        downscaled frequency.</span>
+<span class="sd">        Will be used for the :abbr:`GPP (Gross Primary Productivity)`</span>
+<span class="sd">        downscaling.</span>
+<span class="sd">        :abbr:`PAR (Photosynthetically Active Radiation)` is defined</span>
+<span class="sd">        to be greater than or equal to zero.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    flux_gpp : np.ndarray[N, ...]</span>
+<span class="sd">        The downscaled :abbr:`GPP (Gross Primary Productivity)`</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Olsen, Seth C. and James T. Randerson, 2004.  &quot;Differences between</span>
+<span class="sd">    surface and column atmospheric CO2 and implications for carbon</span>
+<span class="sd">    cycle research,&quot; *Journal of Geophysical Research: Atmospheres*</span>
+<span class="sd">    vol. 109, no. D2, D02301.  :doi:`10.1029/2003JD003968`.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; olsen_randerson_gpp_once(np.array(2.), np.array([0., 1, 1]))</span>
+<span class="sd">    array([0., 3., 3.])</span>
+<span class="sd">    &gt;&gt;&gt; olsen_randerson_gpp_once(np.array(2.), np.array([0., 2, 2]))</span>
+<span class="sd">    array([0., 3., 3.])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">par_total</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">flux_gpp</span> <span class="o">/</span> <span class="n">par_total</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">*</span> <span class="n">par</span></div>
+
+
+<div class="viewcode-block" id="olsen_randerson_resp_once"><a class="viewcode-back" href="../olsen_randerson.html#olsen_randerson.olsen_randerson_resp_once">[docs]</a><span class="k">def</span> <span class="nf">olsen_randerson_resp_once</span><span class="p">(</span><span class="n">flux_resp</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Downscale the respiration following Olsen and Randerson (2004).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    flux_resp : np.ndarray[...]</span>
+<span class="sd">        The original respiration fluxes to downscale.</span>
+<span class="sd">        Units must include time in the denominator.</span>
+<span class="sd">        Respiration fluxes are defined to be greater than or equal to zero.</span>
+<span class="sd">    temperature : np.ndarray[N, ...]</span>
+<span class="sd">        The temperature at the downscaled frequency.</span>
+<span class="sd">        Expected units are degrees Celsius.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    flux_resp : np.ndarray[N, ...]</span>
+<span class="sd">        The downscaled respiration fluxes.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Olsen, Seth C. and James T. Randerson, 2004.  &quot;Differences between</span>
+<span class="sd">    surface and column atmospheric CO2 and implications for carbon</span>
+<span class="sd">    cycle research,&quot; *Journal of Geophysical Research: Atmospheres*</span>
+<span class="sd">    vol. 109, no. D2, D02301.  :doi:`10.1029/2003JD003968`.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; olsen_randerson_resp_once(np.array(19./12.), np.array([0., 10., 20.]))</span>
+<span class="sd">    array([1.  , 1.5 , 2.25])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">resp_scaling</span> <span class="o">=</span> <span class="n">Q10</span> <span class="o">**</span> <span class="p">((</span><span class="n">temperature</span> <span class="o">-</span> <span class="n">T0</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">resp_total</span> <span class="o">=</span> <span class="n">resp_scaling</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">flux_resp</span> <span class="o">/</span> <span class="n">resp_total</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">*</span> <span class="n">resp_scaling</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">olsen-randerson</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../olsen_randerson.html">olsen_randerson package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, DWesl.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

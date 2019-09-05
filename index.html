@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Welcome to olsen-randerson’s documentation! &#8212; olsen-randerson 0.0.0.dev0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"extensions": ["tex2jax.js"], "jax": ["input/TeX", "output/HTML-CSS"], "TeX": {"extensions": ["AMSmath.js"]}})</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="olsen_randerson package" href="olsen_randerson.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-olsen-randerson-s-documentation">
+<h1>Welcome to olsen-randerson’s documentation!<a class="headerlink" href="#welcome-to-olsen-randerson-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="olsen_randerson.html">olsen_randerson package</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="olsen-randerson">
+<h1>olsen-randerson<a class="headerlink" href="#olsen-randerson" title="Permalink to this headline">¶</a></h1>
+<p>Functions to perform the downscaling described in
+<a class="reference internal" href="#olsenranderson2004" id="id1"><span>[OlsenRanderson2004]</span></a> and some of that described in <a class="reference internal" href="#fisheretal2016" id="id2"><span>[Fisheretal2016]</span></a>.</p>
+<p>The support for the <a class="reference internal" href="#fisheretal2016" id="id3"><span>[Fisheretal2016]</span></a> downscaling is incomplete.  In
+particular, the rolling windows are not centered and the net flux does
+not match the original.</p>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<p>The Olsen-Randerson downscaling functions depend on
+<a class="reference external" href="https://docs.scipy.org/doc/numpy">numpy</a>, and the Fisher functions
+additionally require <a class="reference external" href="https://pandas.pydata.org">pandas</a>.</p>
+</div>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<p>To run the tests, run <code class="docutils literal notranslate"><span class="pre">tox</span></code> in the package root directory.
+Tox will take care of installing the test dependencies.</p>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<dl class="citation">
+<dt class="label" id="fisheretal2016"><span class="brackets">Fisheretal2016</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id3">2</a>)</span></dt>
+<dd><p>Fisher, J. B., Sikka, M., Huntzinger, D. N.,
+Schwalm, C., and Liu, J., 2016: Technical note: 3-hourly temporal
+downscaling of monthly global terrestrial biosphere model net
+ecosystem exchange, <em>Biogeosciences</em>, vol. 13, no. 14, 4271–4277,
+doi:<a class="reference external" href="https://dx.doi.org/10.5194/bg-13-4271-2016">10.5194/bg-13-4271-2016</a>.</p>
+</dd>
+<dt class="label" id="olsenranderson2004"><span class="brackets"><a class="fn-backref" href="#id1">OlsenRanderson2004</a></span></dt>
+<dd><p>Olsen, Seth C. and James T. Randerson, 2004.
+“Differences between surface and column atmospheric CO2 and
+implications for carbon cycle research,” <em>Journal of Geophysical
+Research: Atmospheres</em> vol. 109, no. D2, D02301.
+doi:<a class="reference external" href="https://dx.doi.org/10.1029/2003JD003968">10.1029/2003JD003968</a>.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">olsen-randerson</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="olsen_randerson.html">olsen_randerson package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="olsen_randerson.html" title="next chapter">olsen_randerson package</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, DWesl.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
