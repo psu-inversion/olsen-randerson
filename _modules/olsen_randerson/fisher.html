@@ -1,0 +1,266 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>olsen_randerson.fisher &#8212; olsen-randerson 0.0.0.dev0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"extensions": ["tex2jax.js"], "jax": ["input/TeX", "output/HTML-CSS"], "TeX": {"extensions": ["AMSmath.js"]}})</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for olsen_randerson.fisher</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Modifications to the downscaling by Fisher et al. (2016).</span>
+
+<span class="sd">Changes from the Olsen-Randerson downscaling are primarily to prevent</span>
+<span class="sd">discontinuities at month change.</span>
+
+<span class="sd">I do not know whether the rolling windows used in Fisher et al. (2016)</span>
+<span class="sd">were centered on the given time or ending on the given time.  At</span>
+<span class="sd">present, this code uses rolling windows ending on the given day,</span>
+<span class="sd">because that is easy to get pandas to do.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">NEP_TO_GPP_FACTOR</span><span class="p">,</span> <span class="n">Q10</span><span class="p">,</span> <span class="n">T0</span>
+
+<span class="n">INPUT_FREQUENCY</span> <span class="o">=</span> <span class="s2">&quot;1M&quot;</span>
+<span class="sd">&quot;&quot;&quot;The frequency at which the input data are given.</span>
+
+<span class="sd">Used to ensure the downscaled fluxes match the predictions of the</span>
+<span class="sd">original fluxes.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="downscale_timeseries"><a class="viewcode-back" href="../../olsen_randerson.fisher.html#olsen_randerson.fisher.downscale_timeseries">[docs]</a><span class="k">def</span> <span class="nf">downscale_timeseries</span><span class="p">(</span><span class="n">flux_nee</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">par</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Downscale the columns of flux_nee.</span>
+
+<span class="sd">    The parts of the downscaled flux corresponding to the first and</span>
+<span class="sd">    last time periods in the original flux will be incomplete.  It is</span>
+<span class="sd">    recommended to provide an extra time period on each end to avoid</span>
+<span class="sd">    this.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    flux_nee : pd.DataFrame[N_large, M]</span>
+<span class="sd">        :abbr:`NEE (Net Ecosystem Exchange)`, at the large timesteps.</span>
+<span class="sd">        Must have datetime index.  Positive indicates carbon is</span>
+<span class="sd">        entering the atmosphere.  Units must have time in denominator.</span>
+<span class="sd">    temperature : pd.DataFrame[N, M]</span>
+<span class="sd">        Temperature at the small timesteps.</span>
+<span class="sd">        Must have datetime index with a set frequency</span>
+<span class="sd">        Unit is expected to be degrees Celsius.</span>
+<span class="sd">    par : pd.DataFrame[N, M]</span>
+<span class="sd">        :abbr:`PAR (Photosynthetically Active Radiation)` at the small</span>
+<span class="sd">        timesteps.  Must be greather than or equal to zero.  Must have</span>
+<span class="sd">        datetime index with a set frequency.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    flux_nee : pd.DataFrame[N, M]</span>
+<span class="sd">        The downscaled :abbr:`NEE (Net Ecosystem Exchange)`.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Fisher, J. B., Sikka, M., Huntzinger, D. N., Schwalm, C., and Liu,</span>
+<span class="sd">    J., 2016: Technical note: 3-hourly temporal downscaling of monthly</span>
+<span class="sd">    global terrestrial biosphere model net ecosystem exchange,</span>
+<span class="sd">    *Biogeosciences*, vol. 13, no. 14, 4271--4277,</span>
+<span class="sd">    :doi:`10.5194/bg-13-4271-2016`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">estimated_gpp</span> <span class="o">=</span> <span class="o">-</span><span class="n">NEP_TO_GPP_FACTOR</span> <span class="o">*</span> <span class="n">flux_nee</span>
+    <span class="n">flux_gpp</span> <span class="o">=</span> <span class="n">downscale_gpp_timeseries</span><span class="p">(</span>
+        <span class="n">estimated_gpp</span><span class="p">,</span> <span class="n">par</span>
+    <span class="p">)</span>
+    <span class="n">flux_resp</span> <span class="o">=</span> <span class="n">downscale_resp_timeseries</span><span class="p">(</span>
+        <span class="n">estimated_gpp</span> <span class="o">+</span> <span class="n">flux_nee</span><span class="p">,</span> <span class="n">temperature</span>
+    <span class="p">)</span>
+    <span class="n">downscaled_nee</span> <span class="o">=</span> <span class="n">flux_resp</span> <span class="o">-</span> <span class="n">flux_gpp</span>
+    <span class="c1"># # This is where the NEE rebalancing would happen</span>
+    <span class="c1"># month_lengths = downscaled_nee.resample(INPUT_FREQUENCY).size()</span>
+    <span class="c1"># nee_left_out = (</span>
+    <span class="c1">#     flux_nee.resample(INPUT_FREQUENCY).sum().multiply(</span>
+    <span class="c1">#         month_lengths, axis=0</span>
+    <span class="c1">#     ) -</span>
+    <span class="c1">#     downscaled_nee.resample(INPUT_FREQUENCY).sum()</span>
+    <span class="c1"># )</span>
+    <span class="c1"># downscaled_nee = (</span>
+    <span class="c1">#     downscaled_nee.resample(INPUT_FREQUENCY) +</span>
+    <span class="c1">#     nee_left_out.divide(</span>
+    <span class="c1">#         month_lengths, axis=0</span>
+    <span class="c1">#     )</span>
+    <span class="c1"># ).transform(lambda x: x)</span>
+    <span class="k">return</span> <span class="n">downscaled_nee</span></div>
+
+
+<div class="viewcode-block" id="downscale_gpp_timeseries"><a class="viewcode-back" href="../../olsen_randerson.fisher.html#olsen_randerson.fisher.downscale_gpp_timeseries">[docs]</a><span class="k">def</span> <span class="nf">downscale_gpp_timeseries</span><span class="p">(</span><span class="n">flux_gpp</span><span class="p">,</span> <span class="n">par</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Downscale the columns of flux_nee.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    flux_gpp : pd.DataFrame[N_large, M]</span>
+<span class="sd">        :abbr:`GPP (Gross Primary Productivity)` at the larger</span>
+<span class="sd">        timesteps.  Must have a datetime index.  Units must have time</span>
+<span class="sd">        in the denominator.</span>
+<span class="sd">    par : pd.DataFrame[N, M]</span>
+<span class="sd">        :abbr:`PAR (Photosynthetically Active Radiation)` at the small</span>
+<span class="sd">        timesteps.  Must be greather than or equal to zero.  Must have</span>
+<span class="sd">        datetime index with a set frequency.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    flux_gpp : pd.DataFrame[N, M]</span>
+<span class="sd">        The :abbr:`GPP (Gross Primary Productivity)` downscaled to the</span>
+<span class="sd">        smaller time steps.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Fisher, J. B., Sikka, M., Huntzinger, D. N., Schwalm, C., and Liu,</span>
+<span class="sd">    J., 2016: Technical note: 3-hourly temporal downscaling of monthly</span>
+<span class="sd">    global terrestrial biosphere model net ecosystem exchange,</span>
+<span class="sd">    *Biogeosciences*, vol. 13, no. 14, 4271--4277,</span>
+<span class="sd">    :doi:`10.5194/bg-13-4271-2016`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># This is mean over thirty days prior to the given day.</span>
+    <span class="c1"># I can&#39;t figure out how to get a centered window.</span>
+    <span class="n">par_mean</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="s2">&quot;30D&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="c1"># Get the GPP timeseries to the same timestep as par</span>
+    <span class="n">flux_gpp_baseline</span> <span class="o">=</span> <span class="n">flux_gpp</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span>
+        <span class="n">par</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+    <span class="c1"># This would be where I would deal with the first and last several</span>
+    <span class="c1"># timesteps.</span>
+    <span class="k">return</span> <span class="n">flux_gpp_baseline</span> <span class="o">/</span> <span class="n">par_mean</span> <span class="o">*</span> <span class="n">par</span></div>
+
+
+<div class="viewcode-block" id="downscale_resp_timeseries"><a class="viewcode-back" href="../../olsen_randerson.fisher.html#olsen_randerson.fisher.downscale_resp_timeseries">[docs]</a><span class="k">def</span> <span class="nf">downscale_resp_timeseries</span><span class="p">(</span><span class="n">flux_resp</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Downscale the columns of flux_resp.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    flux_resp : pd.DataFrame[N_large, M]</span>
+<span class="sd">        Respiration fluxes at the larger timesteps.</span>
+<span class="sd">        Must have a datetime index.</span>
+<span class="sd">        Units must have time in denominator.</span>
+<span class="sd">    temperature : pd.DataFrame[N, M]</span>
+<span class="sd">        Temperature at the small timesteps.</span>
+<span class="sd">        Must have datetime index with a set frequency</span>
+<span class="sd">        Unit is expected to be degrees Celsius.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    flux_resp : pd.DataFrame[N, M]</span>
+<span class="sd">        The respiration fluxes downscaled to the smaller time steps.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Fisher, J. B., Sikka, M., Huntzinger, D. N., Schwalm, C., and Liu,</span>
+<span class="sd">    J., 2016: Technical note: 3-hourly temporal downscaling of monthly</span>
+<span class="sd">    global terrestrial biosphere model net ecosystem exchange,</span>
+<span class="sd">    *Biogeosciences*, vol. 13, no. 14, 4271--4277,</span>
+<span class="sd">    :doi:`10.5194/bg-13-4271-2016`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">resp_scaling</span> <span class="o">=</span> <span class="n">Q10</span> <span class="o">**</span> <span class="p">((</span><span class="n">temperature</span> <span class="o">-</span> <span class="n">T0</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="c1"># This is mean over thirty days prior to the given day.</span>
+    <span class="c1"># I can&#39;t figure out how to get a centered window.</span>
+    <span class="n">resp_mean</span> <span class="o">=</span> <span class="n">resp_scaling</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="s2">&quot;30D&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="c1"># Get the Respiration timeseries on the same timestep as</span>
+    <span class="c1"># temperature</span>
+    <span class="n">flux_resp_baseline</span> <span class="o">=</span> <span class="n">flux_resp</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span>
+        <span class="n">temperature</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+    <span class="c1"># This is where I would deal with the first and last several</span>
+    <span class="c1"># timesteps.</span>
+    <span class="k">return</span> <span class="n">flux_resp_baseline</span> <span class="o">/</span> <span class="n">resp_mean</span> <span class="o">*</span> <span class="n">resp_scaling</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">olsen-randerson</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../olsen_randerson.html">olsen_randerson package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../olsen_randerson.html">olsen_randerson</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, DWesl.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

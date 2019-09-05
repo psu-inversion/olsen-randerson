@@ -1,0 +1,236 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>olsen_randerson.fisher module &#8212; olsen-randerson 0.0.0.dev0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"extensions": ["tex2jax.js"], "jax": ["input/TeX", "output/HTML-CSS"], "TeX": {"extensions": ["AMSmath.js"]}})</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="olsen_randerson package" href="olsen_randerson.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-olsen_randerson.fisher">
+<span id="olsen-randerson-fisher-module"></span><h1>olsen_randerson.fisher module<a class="headerlink" href="#module-olsen_randerson.fisher" title="Permalink to this headline">¶</a></h1>
+<p>Modifications to the downscaling by Fisher et al. (2016).</p>
+<p>Changes from the Olsen-Randerson downscaling are primarily to prevent
+discontinuities at month change.</p>
+<p>I do not know whether the rolling windows used in Fisher et al. (2016)
+were centered on the given time or ending on the given time.  At
+present, this code uses rolling windows ending on the given day,
+because that is easy to get pandas to do.</p>
+<dl class="data">
+<dt id="olsen_randerson.fisher.INPUT_FREQUENCY">
+<code class="sig-prename descclassname">olsen_randerson.fisher.</code><code class="sig-name descname">INPUT_FREQUENCY</code><em class="property"> = '1M'</em><a class="headerlink" href="#olsen_randerson.fisher.INPUT_FREQUENCY" title="Permalink to this definition">¶</a></dt>
+<dd><p>The frequency at which the input data are given.</p>
+<p>Used to ensure the downscaled fluxes match the predictions of the
+original fluxes.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="olsen_randerson.fisher.downscale_gpp_timeseries">
+<code class="sig-prename descclassname">olsen_randerson.fisher.</code><code class="sig-name descname">downscale_gpp_timeseries</code><span class="sig-paren">(</span><em class="sig-param">flux_gpp</em>, <em class="sig-param">par</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olsen_randerson/fisher.html#downscale_gpp_timeseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olsen_randerson.fisher.downscale_gpp_timeseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Downscale the columns of flux_nee.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>flux_gpp</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">N_large</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">M</span></code>]</span></dt><dd><p><abbr title="Gross Primary Productivity">GPP</abbr> at the larger
+timesteps.  Must have a datetime index.  Units must have time
+in the denominator.</p>
+</dd>
+<dt><strong>par</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">N</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">M</span></code>]</span></dt><dd><p><abbr title="Photosynthetically Active Radiation">PAR</abbr> at the small
+timesteps.  Must be greather than or equal to zero.  Must have
+datetime index with a set frequency.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>flux_gpp</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">N</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">M</span></code>]</span></dt><dd><p>The <abbr title="Gross Primary Productivity">GPP</abbr> downscaled to the
+smaller time steps.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p>Fisher, J. B., Sikka, M., Huntzinger, D. N., Schwalm, C., and Liu,
+J., 2016: Technical note: 3-hourly temporal downscaling of monthly
+global terrestrial biosphere model net ecosystem exchange,
+<em>Biogeosciences</em>, vol. 13, no. 14, 4271–4277,
+<a class="reference external" href="https://dx.doi.org/10.5194/bg-13-4271-2016">doi:10.5194/bg-13-4271-2016</a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="olsen_randerson.fisher.downscale_resp_timeseries">
+<code class="sig-prename descclassname">olsen_randerson.fisher.</code><code class="sig-name descname">downscale_resp_timeseries</code><span class="sig-paren">(</span><em class="sig-param">flux_resp</em>, <em class="sig-param">temperature</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olsen_randerson/fisher.html#downscale_resp_timeseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olsen_randerson.fisher.downscale_resp_timeseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Downscale the columns of flux_resp.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>flux_resp</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">N_large</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">M</span></code>]</span></dt><dd><p>Respiration fluxes at the larger timesteps.
+Must have a datetime index.
+Units must have time in denominator.</p>
+</dd>
+<dt><strong>temperature</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">N</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">M</span></code>]</span></dt><dd><p>Temperature at the small timesteps.
+Must have datetime index with a set frequency
+Unit is expected to be degrees Celsius.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>flux_resp</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">N</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">M</span></code>]</span></dt><dd><p>The respiration fluxes downscaled to the smaller time steps.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p>Fisher, J. B., Sikka, M., Huntzinger, D. N., Schwalm, C., and Liu,
+J., 2016: Technical note: 3-hourly temporal downscaling of monthly
+global terrestrial biosphere model net ecosystem exchange,
+<em>Biogeosciences</em>, vol. 13, no. 14, 4271–4277,
+<a class="reference external" href="https://dx.doi.org/10.5194/bg-13-4271-2016">doi:10.5194/bg-13-4271-2016</a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="olsen_randerson.fisher.downscale_timeseries">
+<code class="sig-prename descclassname">olsen_randerson.fisher.</code><code class="sig-name descname">downscale_timeseries</code><span class="sig-paren">(</span><em class="sig-param">flux_nee</em>, <em class="sig-param">temperature</em>, <em class="sig-param">par</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olsen_randerson/fisher.html#downscale_timeseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olsen_randerson.fisher.downscale_timeseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Downscale the columns of flux_nee.</p>
+<p>The parts of the downscaled flux corresponding to the first and
+last time periods in the original flux will be incomplete.  It is
+recommended to provide an extra time period on each end to avoid
+this.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>flux_nee</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">N_large</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">M</span></code>]</span></dt><dd><p><abbr title="Net Ecosystem Exchange">NEE</abbr>, at the large timesteps.
+Must have datetime index.  Positive indicates carbon is
+entering the atmosphere.  Units must have time in denominator.</p>
+</dd>
+<dt><strong>temperature</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">N</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">M</span></code>]</span></dt><dd><p>Temperature at the small timesteps.
+Must have datetime index with a set frequency
+Unit is expected to be degrees Celsius.</p>
+</dd>
+<dt><strong>par</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">N</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">M</span></code>]</span></dt><dd><p><abbr title="Photosynthetically Active Radiation">PAR</abbr> at the small
+timesteps.  Must be greather than or equal to zero.  Must have
+datetime index with a set frequency.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>flux_nee</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">N</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">M</span></code>]</span></dt><dd><p>The downscaled <abbr title="Net Ecosystem Exchange">NEE</abbr>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p>Fisher, J. B., Sikka, M., Huntzinger, D. N., Schwalm, C., and Liu,
+J., 2016: Technical note: 3-hourly temporal downscaling of monthly
+global terrestrial biosphere model net ecosystem exchange,
+<em>Biogeosciences</em>, vol. 13, no. 14, 4271–4277,
+<a class="reference external" href="https://dx.doi.org/10.5194/bg-13-4271-2016">doi:10.5194/bg-13-4271-2016</a>.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">olsen-randerson</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="olsen_randerson.html">olsen_randerson package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="olsen_randerson.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">olsen_randerson.fisher module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="olsen_randerson.html">olsen_randerson package</a><ul>
+      <li>Previous: <a href="olsen_randerson.html" title="previous chapter">olsen_randerson package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, DWesl.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/olsen_randerson.fisher.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

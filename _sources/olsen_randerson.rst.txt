@@ -5,3 +5,10 @@ olsen\_randerson package
    :members:
    :undoc-members:
    :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+
+   olsen_randerson.fisher
