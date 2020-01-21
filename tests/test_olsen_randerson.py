@@ -10,6 +10,11 @@ import olsen_randerson
 
 TEST_LENGTH = 6
 """Number of time periods in test."""
+UNREASONABLY_LARGE_FLUX_MAGNITUDE = 1e30
+"""A flux that is unreasonably large in magnitude.
+
+Needed to provide bounds for fluxes
+"""
 
 
 # Not entirely sure what units Photosynthetically Active Radiation is
@@ -42,7 +47,7 @@ def test_olsen_randerson_gpp_once(flux_gpp, par):
 
 
 @given(arrays(np.float, (3, 5),
-              elements=floats(min_value=0, allow_infinity=False)),
+              elements=floats(min_value=0, max_value=+UNREASONABLY_LARGE_FLUX_MAGNITUDE)),
        arrays(np.float, (TEST_LENGTH, 3, 5),
               elements=floats(min_value=-100, max_value=100)))
 def test_olsen_randerson_resp_once(flux_resp, temperature):
@@ -62,7 +67,8 @@ def test_olsen_randerson_resp_once(flux_resp, temperature):
 @given(
     arrays(
         np.float, (3, 5),
-        elements=floats(min_value=-1e30, max_value=+1e30)
+        elements=floats(min_value=-UNREASONABLY_LARGE_FLUX_MAGNITUDE,
+                        max_value=+UNREASONABLY_LARGE_FLUX_MAGNITUDE)
     ),
     arrays(
         np.float, (TEST_LENGTH, 3, 5),
