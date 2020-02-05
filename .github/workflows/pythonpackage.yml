@@ -39,4 +39,6 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest
+        pip install .
+        python setup.py check
         python -m pytest
