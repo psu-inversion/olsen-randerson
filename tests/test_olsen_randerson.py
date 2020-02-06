@@ -47,7 +47,9 @@ def test_olsen_randerson_gpp_once(flux_gpp, par):
 
 
 @given(arrays(np.float, (3, 5),
-              elements=floats(min_value=0, max_value=+UNREASONABLY_LARGE_FLUX_MAGNITUDE)),
+              elements=floats(
+                  min_value=0, max_value=+UNREASONABLY_LARGE_FLUX_MAGNITUDE
+              )),
        arrays(np.float, (TEST_LENGTH, 3, 5),
               elements=floats(min_value=-100, max_value=100)))
 def test_olsen_randerson_resp_once(flux_resp, temperature):
