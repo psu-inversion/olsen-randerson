@@ -13,7 +13,7 @@ Dependencies
 ============
 
 The Olsen-Randerson downscaling functions depend on
-`numpy <https://docs.scipy.org/doc/numpy>`_, and the Fisher functions
+`numpy <https://numpy.org/>`_, and the Fisher functions
 additionally require `pandas <https://pandas.pydata.org>`_.
 
 Testing
