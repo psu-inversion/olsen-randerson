@@ -3,11 +3,11 @@ import numpy as np
 
 from .__version__ import VERSION as __version__  # noqa: F401
 
-NEP_TO_GPP_FACTOR = 2
+NPP_TO_GPP_FACTOR = 2
 """Conversion factor to estimate GPP from NEE
 
 The downscaling needs :abbr:`GPP (Gross Primary Productivity)`, but
-often only :abbr:`NEE (Net Ecosystem Exchange)` is available.  This
+often only :abbr:`NPP (Net Primary Productivity)` is available.  This
 describes how to turn the latter into an estimate of the former.
 """
 Q10 = 1.5
@@ -23,13 +23,22 @@ Should be near the center of the temperature range.
 """
 
 
-def olsen_randerson_once(flux_nep, temperature, par):
-    """Perform the Olson Randerson downscaling.
+def olsen_randerson_once(
+        flux_npp,
+        flux_rh,
+        temperature,
+        par
+):
+    """Perform the Olson Randerson downscaling for a single month.
 
     Parameters
     ----------
-    flux_nep : np.ndarray[...]
-        Biogenic :abbr:`NEP (Net Ecosystem Productivity)`, usually at
+    flux_npp : np.ndarray[...]
+        Biogenic :abbr:`NPP (Net Primary Productivity)`, usually at
+        monthly timescale.  Units must include time in the
+        denominator.
+    flux_rh : np.ndarray[...]
+        Biogenic :abbr:`Rh (heterotrophic respiration)`, usually at
         monthly timescale.  Units must include time in the
         denominator.
     temperature : np.ndarray[N, ...]
@@ -45,6 +54,7 @@ def olsen_randerson_once(flux_nep, temperature, par):
     -------
     flux_nee : np.ndarray[N, ...]
         The downscaled :abbr:`NEP (Net Ecosystem Productivity)`.
+        (positive is uptake by plants).
 
     References
     ----------
@@ -60,20 +70,29 @@ def olsen_randerson_once(flux_nep, temperature, par):
     >>> par[par < 0] = 0
     >>> temperature = 10 - 10 * np.cos(2 * np.pi * time)
     >>> # First item in row alternates between midnight and noon
-    >>> olsen_randerson_once(np.array(5), temperature, par)
+    >>> olsen_randerson_once(np.array(5), np.array(0), temperature, par)
     array([-3.20043607, -3.4581163 , -4.2353102 ,  4.10768819, 18.33559721,
            23.70071827, 18.33559721,  4.10768819, -4.2353102 , -3.4581163 ,
            -3.20043607, -3.4581163 , -4.2353102 ,  4.10768819, 18.33559721,
            23.70071827, 18.33559721,  4.10768819, -4.2353102 , -3.4581163 ,
            -3.20043607, -3.4581163 , -4.2353102 ,  4.10768819, 18.33559721,
            23.70071827, 18.33559721,  4.10768819, -4.2353102 , -3.4581163 ])
+
     """
-    estimated_gpp = NEP_TO_GPP_FACTOR * flux_nep
+    assert par.shape == temperature.shape
+    assert flux_npp.shape == flux_rh.shape
+    # It is plausible that NPP < 0 in some seasons; I should probably
+    # use different assumptions then.  GPP = - NPP, Rauto = -2 NPP?
+    estimated_gpp = NPP_TO_GPP_FACTOR * flux_npp
     flux_gpp = olsen_randerson_gpp_once(
         estimated_gpp, par
     )
     flux_resp = olsen_randerson_resp_once(
-        estimated_gpp - flux_nep, temperature
+        # Rauto
+        estimated_gpp - flux_npp +
+        # Rh
+        flux_rh,
+        temperature
     )
     return flux_gpp - flux_resp
 

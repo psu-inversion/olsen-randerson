@@ -15,6 +15,13 @@ UNREASONABLY_LARGE_FLUX_MAGNITUDE = 1e30
 
 Needed to provide bounds for fluxes
 """
+RTOL_FOR_ATOL = 1e-10
+"""rtol to use with NPP/Rh to find atol for NEP/NEE.
+
+Combining NPP and Rh or GPP and Reco to get NEP/NEE subtracts two
+large numbers to get a small number.  Use the original numbers to find
+reasonable precision.
+"""
 
 
 # Not entirely sure what units Photosynthetically Active Radiation is
@@ -79,6 +86,11 @@ def test_olsen_randerson_resp_once(flux_resp, temperature):
                         max_value=+UNREASONABLY_LARGE_FLUX_MAGNITUDE)
     ),
     arrays(
+        np.float, (3, 5),
+        elements=floats(min_value=0,
+                        max_value=+UNREASONABLY_LARGE_FLUX_MAGNITUDE)
+    ),
+    arrays(
         np.float, (TEST_LENGTH, 3, 5),
         elements=floats(min_value=-100, max_value=100)
     ),
@@ -89,15 +101,19 @@ def test_olsen_randerson_resp_once(flux_resp, temperature):
         lambda par: np.all(np.any(par != 0, axis=0))
     )
 )
-def test_olsen_randerson_once(flux_nee, temperature, par):
+def test_olsen_randerson_once(flux_npp, flux_rh, temperature, par):
     """Test single downscaling of NEE."""
     assume(np.all(np.any(par != 0, axis=0)))
     flux_nee_downscaled = olsen_randerson.olsen_randerson_once(
-        flux_nee, temperature, par
+        flux_npp, flux_rh, temperature, par
     )
     assert flux_nee_downscaled.shape == temperature.shape
     flux_nee_downscaled_upscaled = flux_nee_downscaled.sum(axis=0)
-    assert flux_nee_downscaled_upscaled.shape == flux_nee.shape
+    assert flux_nee_downscaled_upscaled.shape == flux_npp.shape
+    atol = RTOL_FOR_ATOL * max(
+        flux_npp.max(),
+        flux_rh.max(),
+    )
     np_tst.assert_allclose(flux_nee_downscaled_upscaled,
-                           flux_nee * TEST_LENGTH,
-                           atol=1e-100)
+                           (flux_npp - flux_rh) * TEST_LENGTH,
+                           atol=atol)
