@@ -1,5 +1,12 @@
 {
+    "description": "Functions to perform the carbon dioxide flux temporal downscaling described in Olsen and Randerson (2004) and modifications from Fisher et al. (2016)",
+    "keywords": [
+        "carbon dioxide",
+        "carbon flux",
+        "temporal downscaling",
+    ],
     "license": "BSD-3-Clause",
     "upload_type": "software",
-    "access_right": "open",
+    "title": "Olsen-Randerson",
+    "access_right": "open"
 }
