@@ -1,0 +1,61 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Olsen-Randerson
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: DWesl
+    affiliation: psu-inversion
+repository-code: 'https://github.com/psu-inversion/olsen-randerson'
+url: 'https://psu-inversion.github.io/olsen-randerson/'
+abstract: 'Functions to perform the carbon dioxide flux temporal downscaling described in Olsen and Randerson (2004) and modifications from Fisher et al. (2016)'
+keywords:
+  - carbon dioxide
+  - carbon flux
+  - temporal downscaling
+license: BSD-3-Clause
+references:
+    - authors:
+      - family-names: Olsen
+        given-names: "Seth C."
+      - family-names: Randerson
+        given-names: "James T."
+      title: "Differences between surface and column atmospheric CO2 and implications for carbon cycle research"
+      doi: 10.1029/2003JD003968
+      journal: "Journal of Geophysical Research: Atmospheres"
+      volume: 109
+      issue: D2
+      type: article
+      year: 2004
+      month: 1
+      issn: 0148-0227
+      publisher: "American Geophysical Union"
+      url: "https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/2003JD003968"
+    - authors:
+      - family-names: Fisher
+        given-names: "J.B."
+      - family-names: Sikka
+        given-names: "M."
+      - family-names: Huntzinger
+        given-names: "D.N."
+      - family-names: Schwalm
+        given-names: "C."
+      - family-names: Liu
+        given-names: "J."
+      title: "Technical note: 3-hourly temporal downscaling of monthly global terrestrial biosphere model net ecosystem exchange"
+      doi: "10.5194/bg-13-4271-2016"
+      journal: "Biogeosciences"
+      volume: 13
+      issue: 14
+      pages: "4271–4277"
+      type: article
+      year: 2016
+      month: 7
+      issn: "1726-4170"
+      publisher: "Copernicus Publications"
+      url: "https://www.biogeosciences.net/13/4271/2016/"
+      copyright: "© Author(s) 2016. This work is distributed under the Creative Commons Attribution 3.0 License."
