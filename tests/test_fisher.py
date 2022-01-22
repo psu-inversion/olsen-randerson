@@ -4,6 +4,7 @@ import operator
 
 import numpy as np
 import numpy.testing as np_tst
+from numpy.testing import assert_allclose
 import pandas as pd
 
 from hypothesis import given, assume
@@ -113,7 +114,15 @@ def test_downscale_resp_timeseries(flux_resp, temperature):
 @given(
     arrays(
         float, (len(MONTH_CENTER_INDEX), len(COLUMNS)),
-        elements=floats(min_value=-1e30, max_value=1e30)
+        elements=floats(min_value=0, max_value=1e30)
+    ).map(
+        functools.partial(pd.DataFrame,
+                          index=MONTH_CENTER_INDEX,
+                          columns=COLUMNS)
+    ),
+    arrays(
+        float, (len(MONTH_CENTER_INDEX), len(COLUMNS)),
+        elements=floats(min_value=0, max_value=1e30)
     ).map(
         functools.partial(pd.DataFrame,
                           index=MONTH_CENTER_INDEX,
@@ -136,13 +145,17 @@ def test_downscale_resp_timeseries(flux_resp, temperature):
                           columns=COLUMNS)
     )
 )
-def test_downscale_nee_timeseries(flux_nee, temperature, par):
+def test_downscale_timeseries(flux_npp, flux_rh, temperature, par):
     """Test downscaling of NEE."""
     flux_nee_downscaled = olsen_randerson.fisher.downscale_timeseries(
-        flux_nee, temperature, par
+        flux_npp, flux_rh, temperature, par
     )
     assert flux_nee_downscaled.shape == temperature.shape
     flux_nee_downscaled_upscaled = flux_nee_downscaled.resample(
         olsen_randerson.fisher.INPUT_FREQUENCY
     ).sum()
-    assert flux_nee_downscaled_upscaled.shape == flux_nee.shape
+    assert flux_nee_downscaled_upscaled.shape == flux_npp.shape
+    assert_allclose(
+        (flux_npp - flux_rh).values[1:-1, :],
+        flux_nee_downscaled_upscaled
+    )
