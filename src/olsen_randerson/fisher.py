@@ -9,7 +9,7 @@ present, this code uses rolling windows ending on the given day,
 because that is easy to get pandas to do.
 """
 
-from . import NEP_TO_GPP_FACTOR, Q10, T0
+from . import NPP_TO_GPP_FACTOR, Q10, T0
 
 INPUT_FREQUENCY = "1M"
 """The frequency at which the input data are given.
@@ -19,7 +19,7 @@ original fluxes.
 """
 
 
-def downscale_timeseries(flux_nee, temperature, par):
+def downscale_timeseries(flux_npp, flux_rh, temperature, par):
     """Downscale the columns of flux_nee.
 
     The parts of the downscaled flux corresponding to the first and
@@ -29,8 +29,12 @@ def downscale_timeseries(flux_nee, temperature, par):
 
     Parameters
     ----------
-    flux_nee : pd.DataFrame[N_large, M]
-        :abbr:`NEE (Net Ecosystem Exchange)`, at the large timesteps.
+    flux_npp : pd.DataFrame[N_large, M]
+        :abbr:`NPP (Net Primary Production)`, at the large timesteps.
+        Must have datetime index.  Positive indicates carbon is
+        leaving the atmosphere.  Units must have time in denominator.
+    flux_rh : pd.DataFrame[N_large, M]
+        :abbr:`Rh (Heterotrophic Respiration)` at the large timesteps.
         Must have datetime index.  Positive indicates carbon is
         entering the atmosphere.  Units must have time in denominator.
     temperature : pd.DataFrame[N, M]
@@ -47,6 +51,10 @@ def downscale_timeseries(flux_nee, temperature, par):
     flux_nee : pd.DataFrame[N, M]
         The downscaled :abbr:`NEE (Net Ecosystem Exchange)`.
 
+    Notes
+    -----
+    NEE = GPP - Reco = GPP - Ra - Rh = NPP - Rh
+
     References
     ----------
     Fisher, J. B., Sikka, M., Huntzinger, D. N., Schwalm, C., and Liu,
@@ -54,16 +62,26 @@ def downscale_timeseries(flux_nee, temperature, par):
     global terrestrial biosphere model net ecosystem exchange,
     *Biogeosciences*, vol. 13, no. 14, 4271--4277,
     :doi:`10.5194/bg-13-4271-2016`.
+
     """
-    estimated_gpp = -NEP_TO_GPP_FACTOR * flux_nee
+    estimated_gpp = NPP_TO_GPP_FACTOR * flux_npp
     flux_gpp = downscale_gpp_timeseries(
         estimated_gpp, par
     )
     flux_resp = downscale_resp_timeseries(
-        estimated_gpp + flux_nee, temperature
+        estimated_gpp - flux_npp + flux_rh, temperature
     )
     downscaled_nee = flux_resp - flux_gpp
-    return downscaled_nee
+    original_nee = (flux_npp - flux_rh).resample("1MS").first()
+    difference = (
+        downscaled_nee.rolling(
+            "30D", min_periods=1
+        ).mean() -
+        original_nee.resample(par.index.freq).ffill().rolling(
+            "30D", min_periods=1
+        ).mean().loc[par.index[0]:par.index[-1], :]
+    )
+    return downscaled_nee + difference
 
 
 def downscale_gpp_timeseries(flux_gpp, par):
